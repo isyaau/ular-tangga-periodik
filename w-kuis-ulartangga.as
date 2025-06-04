@@ -18,6 +18,15 @@ function setPetakAktif(nomor:int):void {
     trace("Petak aktif diset ke: " + petakAktif);
 }
 
+function pilihSoalAcak(petak:int):Array {
+    if (soalPetak[petak] != undefined) {
+        var soalList:Array = soalPetak[petak]; // Ambil daftar soal untuk petak tersebut
+        var randomIndex:int = Math.floor(Math.random() * soalList.length); // Pilih indeks acak
+        return soalList[randomIndex]; // Kembalikan soal yang dipilih secara acak
+    }
+    return null; // Jika tidak ada soal untuk petak tersebut
+}
+
 function getSoalByPetak(nomorPetak:int):Array {
     trace("MENGAMBIL SOAL UNTUK PETAK: " + nomorPetak);
     
@@ -37,9 +46,11 @@ function getSoalByPetak(nomorPetak:int):Array {
 }
 
 
+
+
 function tampilkanSoal(petak:int):void {
     petakAktif = petak;
-    var soalData:Array = getSoalByPetak(petak);
+    var soalData:Array = pilihSoalAcak(petak); // Ambil soal acak untuk petak yang aktif
     
     trace("=== MENAMPILKAN SOAL ===");
     trace("Petak: " + petak);
@@ -54,33 +65,52 @@ function tampilkanSoal(petak:int):void {
     
     // Set gambar soal (jika ada)
     if (kuisMC.gambarMC) {
-        kuisMC.gambarMC.gotoAndStop(soalData[5] || 1);
-        aturWarna(kuisMC.gambarMC, 0);
+        kuisMC.gambarMC.gotoAndStop(soalData[5] || 1); // Gambar soal, jika ada
+        aturWarna(kuisMC.gambarMC, 0); // Atur warna gambar jika diperlukan
     }
     
     // Set teks soal
     if (kuisMC.soalTxt) {
-        kuisMC.soalTxt.text = soalData[0];
+        kuisMC.soalTxt.text = soalData[0]; // Menampilkan soal di UI
     }
     
     // Set pilihan jawaban
+    var jawabanArray:Array = [soalData[1], soalData[2], soalData[3], soalData[4]];
+    
+    // Acak jawaban
+    shuffle(jawabanArray);
+
+    // Tampilkan jawaban yang sudah diacak
     if (kuisMC.jawab1 && kuisMC.jawab1.jawabanTxt) {
-        kuisMC.jawab1.jawabanTxt.text = soalData[1];
+        kuisMC.jawab1.jawabanTxt.text = jawabanArray[0];
     }
     if (kuisMC.jawab2 && kuisMC.jawab2.jawabanTxt) {
-        kuisMC.jawab2.jawabanTxt.text = soalData[2];
+        kuisMC.jawab2.jawabanTxt.text = jawabanArray[1];
     }
     if (kuisMC.jawab3 && kuisMC.jawab3.jawabanTxt) {
-        kuisMC.jawab3.jawabanTxt.text = soalData[3];
+        kuisMC.jawab3.jawabanTxt.text = jawabanArray[2];
     }
     if (kuisMC.jawab4 && kuisMC.jawab4.jawabanTxt) {
-        kuisMC.jawab4.jawabanTxt.text = soalData[4];
+        kuisMC.jawab4.jawabanTxt.text = jawabanArray[3];
     }
     
-    // Simpan jawaban untuk pengecekan
-    tempJawaban = [soalData[1], soalData[2], soalData[3], soalData[4]];
+    // Simpan jawaban untuk pengecekan (menggunakan urutan yang baru diacak)
+    tempJawaban = jawabanArray;
     tempSoal = soalData;
 }
+
+
+// Fungsi untuk mengacak elemen-elemen dalam array
+function shuffle(array:Array):void {
+    for (var i:int = array.length - 1; i > 0; i--) {
+        var j:int = Math.floor(Math.random() * (i + 1));
+        var temp:* = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
+
+
 
 function setupKuis():void {
     // Cek apakah kuisMC ada di stage
@@ -212,27 +242,29 @@ function aturWarna(ob:MovieClip, num:int):void {
     ob.transform.colorTransform = color;
 }
 
-function tampilkanKuis():void {
+function tampilkanKuis(petak:int):void {
     if (!kuisMC) {
         trace("Error: kuisMC tidak tersedia!");
         return;
     }
-    
+
     // Tampilkan soal sesuai petak aktif
-    tampilkanSoal(petakAktif);
-    
+    tampilkanSoal(petak);  // Panggil tampilkanSoal dengan argumen petak
+
     // Posisikan dan tampilkan kuis
     kuisMC.x = 600;
     kuisMC.y = 300;
     kuisMC.visible = true;
-    
+
     // Tambahkan ke stage jika belum ada
     if (!contains(kuisMC)) {
         addChild(kuisMC);
     }
-    
-    trace("Kuis ditampilkan untuk petak: " + petakAktif);
+
+    trace("Kuis ditampilkan untuk petak: " + petak);
 }
+
+
 
 function updateNilai():void {
     // Update tampilan nilai jika text field tersedia
@@ -250,5 +282,5 @@ function updateNilai():void {
 function testSoalPetak(nomorPetak:int):void {
     trace("=== TEST SOAL PETAK " + nomorPetak + " ===");
     setPetakAktif(nomorPetak);
-    tampilkanKuis();
+    tampilkanKuis(petakAktif)
 }
