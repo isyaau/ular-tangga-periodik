@@ -157,29 +157,34 @@ function mouseOut(e:MouseEvent):void {
 
 function cekJawaban(e:MouseEvent):void {
     if (!gameAktif) return;
-    
-    gameAktif = false; // Nonaktifkan input sementara
-    
-    // Ambil nomor jawaban (jawab1 = 0, jawab2 = 1, dst)
+    gameAktif = false; 
+
+    // Ambil jawaban yang dipilih
     var nomorJawaban:int = int(e.currentTarget.name.substr(5)) - 1;
     var jawabanDipilih:String = tempJawaban[nomorJawaban];
-    var jawabanBenar:String = tempSoal[1]; // Jawaban benar selalu di index 1
-    
+    var jawabanBenar:String = tempSoal[1]; // selalu di index 1
+
     trace("=== CEK JAWABAN ===");
     trace("Petak: " + petakAktif);
     trace("Jawaban dipilih: " + jawabanDipilih);
     trace("Jawaban benar: " + jawabanBenar);
-    
+
+    // Beri poin +5 atau −5
     if (jawabanDipilih == jawabanBenar) {
         trace("✓ JAWABAN BENAR!");
         tampilkanHasil(1); // Frame "Benar"
-        nilaiPemain[giliranPemain - 1] += 10;
-        updateNilai();
+        nilaiPemain[giliranPemain - 1] += 5;
     } else {
         trace("✗ JAWABAN SALAH!");
         tampilkanHasil(2); // Frame "Salah"
+        nilaiPemain[giliranPemain - 1] -= 5;
     }
+
+    // Perbarui tampilan dan cek menang
+    updateNilai();
+    checkEndByScore();
 }
+
 
 function tampilkanHasil(tp:int):void {
     hasil = new hasilMC();
@@ -264,6 +269,16 @@ function tampilkanKuis(petak:int):void {
     trace("Kuis ditampilkan untuk petak: " + petak);
 }
 
+/**
+ * Cek apakah pemain saat ini sudah mencapai 100 poin.
+ * Jika ya, tandai game sebagai selesai dan tampilkan pemenang.
+ */
+function checkEndByScore():void {
+    if (nilaiPemain[giliranPemain - 1] >= 100) {
+        gameMenang = true;
+        tampilkanPemenang();
+    }
+}
 
 
 function updateNilai():void {
